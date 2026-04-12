@@ -205,7 +205,7 @@ export default function HomePage() {
                 </div>
 
                 {/* Content area – styled empty placeholder */}
-                <div className="relative aspect-[16/9] w-full bg-gradient-to-br from-muted/50 via-background to-muted/30 p-6 md:p-10">
+                <div className="relative aspect-video w-full bg-linear-to-br from-muted/50 via-background to-muted/30 p-6 md:p-10">
                   {/* Decorative grid lines */}
                   <div
                     className="absolute inset-0 opacity-[0.04]"
@@ -397,7 +397,7 @@ export default function HomePage() {
                 {features[0].description}
               </p>
               {/* Decorative illustration placeholder */}
-              <div className="mt-6 h-40 rounded-xl bg-gradient-to-br from-primary/10 via-transparent to-chart-4/10 border border-border/50 flex items-center justify-center">
+              <div className="mt-6 h-40 rounded-xl bg-linear-to-br from-primary/10 via-transparent to-chart-4/10 border border-border/50 flex items-center justify-center">
                 <div className="flex items-center gap-3 text-muted-foreground/40">
                   <Sparkles className="size-10" />
                   <span className="text-5xl font-bold tracking-tighter opacity-30">
@@ -471,7 +471,7 @@ export default function HomePage() {
                   )}
                 </div>
                 {/* Decorative area */}
-                <div className="hidden sm:flex h-36 w-36 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-chart-2/15 to-chart-5/15 border border-border/50">
+                <div className="hidden sm:flex h-36 w-36 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-chart-2/15 to-chart-5/15 border border-border/50">
                   <Library className="size-10 text-muted-foreground/30" />
                 </div>
               </div>

@@ -6,6 +6,8 @@ import {
   DefaultValues,
   Controller,
   FieldValues,
+  ControllerRenderProps,
+  ControllerFieldState,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -27,6 +29,11 @@ export type FormFieldConfig = {
   description?: string;
   /** Pass an element to be rendered next to the label (e.g., 'Forgot password?' link) */
   renderExtraLabel?: React.ReactNode;
+  /** Custom render function for the field */
+  render?: (params: {
+    field: ControllerRenderProps<FieldValues, string>;
+    fieldState: ControllerFieldState;
+  }) => React.ReactNode;
 };
 
 interface GlobalFormProps<TValues extends FieldValues> {
@@ -34,7 +41,7 @@ interface GlobalFormProps<TValues extends FieldValues> {
   defaultValues: DefaultValues<TValues>;
   onSubmit: (values: TValues) => void | Promise<void>;
   fields: FormFieldConfig[];
-  submitText?: string;
+  submitText?: React.ReactNode;
   isLoading?: boolean;
   className?: string;
   buttonClassName?: string;
@@ -77,21 +84,27 @@ export function GlobalForm<TValues extends FieldValues>({
                 </Label>
                 {fieldConfig.renderExtraLabel && fieldConfig.renderExtraLabel}
               </div>
-              <Input
-                {...field}
-                id={fieldConfig.name}
-                type={fieldConfig.type || "text"}
-                placeholder={fieldConfig.placeholder}
-                autoComplete={fieldConfig.autoComplete}
-                autoCapitalize={fieldConfig.autoCapitalize}
-                autoCorrect={fieldConfig.autoCorrect}
-                disabled={isLoading}
-                aria-invalid={fieldState.invalid}
-                className={cn(
-                  fieldState.invalid &&
-                    "border-destructive focus-visible:ring-destructive",
-                )}
-              />
+              
+              {fieldConfig.render ? (
+                fieldConfig.render({ field, fieldState } as any)
+              ) : (
+                <Input
+                  {...field}
+                  id={fieldConfig.name}
+                  type={fieldConfig.type || "text"}
+                  placeholder={fieldConfig.placeholder}
+                  autoComplete={fieldConfig.autoComplete}
+                  autoCapitalize={fieldConfig.autoCapitalize}
+                  autoCorrect={fieldConfig.autoCorrect}
+                  disabled={isLoading}
+                  aria-invalid={fieldState.invalid}
+                  className={cn(
+                    fieldState.invalid &&
+                      "border-destructive focus-visible:ring-destructive",
+                  )}
+                />
+              )}
+              
               {fieldConfig.description && (
                 <p className="text-[0.8rem] text-muted-foreground">
                   {fieldConfig.description}

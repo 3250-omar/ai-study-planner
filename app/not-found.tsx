@@ -49,7 +49,7 @@ export default function NotFound() {
             <Button
               size="lg"
               id="not-found-home"
-              className="bg-brand-gradient dark:text-white text-black h-11 px-6 text-sm font-semibold shadow-lg hover:opacity-90 transition-opacity gap-2"
+              className="bg-brand-gradient dark:text-white text-black h-11 px-6 text-sm font-semibold shadow-lg hover:opacity-90 transition-opacity gap-2 cursor-pointer"
             >
               <ArrowLeft className="size-4" />
               Back to Home
