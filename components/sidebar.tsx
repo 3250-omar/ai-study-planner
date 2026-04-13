@@ -172,7 +172,7 @@ export function Sidebar() {
           <nav className="space-y-1">
             {bottomItems.map((item) => {
               const isActive = pathname === item.href;
-
+git 
               return (
                 <Link
                   key={item.name}
