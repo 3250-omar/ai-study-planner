@@ -21,8 +21,6 @@ export const metadata: Metadata = {
     "AuraStudy uses AI to architect personalised study workflows, optimise your memory retention, and reclaim your time before exams.",
 };
 
-import { SubjectModal } from "@/components/modals/subject-modal";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -43,7 +41,6 @@ export default function RootLayout({
         >
           {children}
           <Toaster />
-          <SubjectModal />
         </ThemeProvider>
       </body>
     </html>

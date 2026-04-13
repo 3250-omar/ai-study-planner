@@ -103,7 +103,9 @@
   --sidebar-border: oklch(0.89 0.01 255);
   --sidebar-ring: oklch(0.585 0.233 277.1);
 }
-
+button{
+  cursor: pointer;
+}
 .dark {
   /* Brand – same hue, just slightly brighter */
   --brand: oklch(0.65 0.22 277.1);
