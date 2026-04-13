@@ -170,24 +170,31 @@ export function Sidebar() {
           )}
 
           <nav className="space-y-1">
-            {bottomItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                title={collapsed ? item.name : undefined}
-                className={cn(
-                  "flex items-center rounded-lg text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
-                  collapsed
-                    ? "justify-center px-0 py-2.5"
-                    : "gap-3 px-3 py-2.5",
-                )}
-              >
-                <item.icon className="size-[18px] shrink-0" />
-                {!collapsed && (
-                  <span className="whitespace-nowrap">{item.name}</span>
-                )}
-              </Link>
-            ))}
+            {bottomItems.map((item) => {
+              const isActive = pathname === item.href;
+
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  title={collapsed ? item.name : undefined}
+                  className={cn(
+                    "flex items-center rounded-lg text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                    collapsed
+                      ? "justify-center px-0 py-2.5"
+                      : "gap-3 px-3 py-2.5",
+                    isActive
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                  )}
+                >
+                  <item.icon className="size-[18px] shrink-0" />
+                  {!collapsed && (
+                    <span className="whitespace-nowrap">{item.name}</span>
+                  )}
+                </Link>
+              );
+            })}
 
             {/* User Account / Profile Dropdown Menu */}
             <DropdownMenu>

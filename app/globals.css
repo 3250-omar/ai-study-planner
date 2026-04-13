@@ -88,9 +88,9 @@
 
   --chart-1: oklch(0.585 0.233 277.1);
   --chart-2: oklch(0.71 0.16 277.1);
-  --chart-3: oklch(0.82 0.10 277.1);
+  --chart-3: oklch(0.82 0.1 277.1);
   --chart-4: oklch(0.55 0.19 300);
-  --chart-5: oklch(0.50 0.22 260);
+  --chart-5: oklch(0.5 0.22 260);
 
   --radius: 0.75rem;
 
@@ -103,7 +103,7 @@
   --sidebar-border: oklch(0.89 0.01 255);
   --sidebar-ring: oklch(0.585 0.233 277.1);
 }
-button{
+button {
   cursor: pointer;
 }
 .dark {
@@ -141,7 +141,7 @@ button{
   --chart-1: oklch(0.65 0.22 277.1);
   --chart-2: oklch(0.75 0.15 277.1);
   --chart-3: oklch(0.83 0.09 277.1);
-  --chart-4: oklch(0.60 0.19 300);
+  --chart-4: oklch(0.6 0.19 300);
   --chart-5: oklch(0.55 0.21 260);
 
   --sidebar: oklch(0.15 0.02 265);
@@ -164,7 +164,12 @@ button{
   html {
     @apply font-sans scroll-smooth;
   }
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-semibold tracking-tight;
   }
 }
@@ -175,7 +180,11 @@ button{
     @apply bg-gradient-to-r from-[oklch(0.65_0.22_277.1)] to-[oklch(0.72_0.19_300)] bg-clip-text text-transparent;
   }
   .bg-brand-gradient {
-    background: linear-gradient(135deg, oklch(0.585 0.233 277.1), oklch(0.55 0.22 300));
+    background: linear-gradient(
+      135deg,
+      oklch(0.585 0.233 277.1),
+      oklch(0.55 0.22 300)
+    );
   }
   .glow-brand {
     box-shadow: 0 0 40px oklch(0.585 0.233 277.1 / 30%);
@@ -187,13 +196,28 @@ button{
 
 /* Loading animations */
 @keyframes pulse-slow {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.05); }
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
 }
 
 @keyframes bounce-dot {
-  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-  40% { opacity: 1; transform: scale(1.2); }
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 @layer utilities {
@@ -215,4 +239,33 @@ button{
   .animation-delay-2000 {
     animation-delay: 2s;
   }
+}
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: var(--radius);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Firefox Support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-foreground) transparent;
 }
