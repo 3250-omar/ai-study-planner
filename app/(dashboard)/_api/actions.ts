@@ -1,3 +1,19 @@
 "use server";
 
-// Dashboard module specific actions go here
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+
+export async function logout() {
+  const supabase = await createClient();
+  
+  const { error } = await supabase.auth.signOut();
+  
+  if (error) {
+    console.error("Logout error:", error);
+    return { error: error.message };
+  }
+
+  revalidatePath("/", "layout");
+  redirect("/sign-in");
+}

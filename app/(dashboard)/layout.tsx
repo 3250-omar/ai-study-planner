@@ -3,21 +3,31 @@ import { Sidebar } from "@/components/sidebar";
 import { Topbar } from "@/components/topbar";
 import { SubjectModal } from "@/components/modals/subject-modal";
 import { UploadModal } from "@/components/modals/upload-modal";
-import { AiTutor } from "./_components/ai-tutor";
+import { AiTutor } from "@/app/(dashboard)/_components/ai-tutor";
+import { getUserProfile } from "@/app/(dashboard)/_api/queries";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Dashboard - AuraStudy",
   description: "Your personalized study timeline and progress analytics.",
 };
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const result = await getUserProfile();
+
+  if (!result || !result.user) {
+    redirect("/sign-in");
+  }
+
+  const { user, profile } = result;
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar />
+      <Sidebar user={user} profile={profile} />
       <div className="relative flex flex-1 flex-col overflow-hidden">
         <Topbar />
 
@@ -26,9 +36,11 @@ export default function DashboardLayout({
           <div className="mx-auto max-w-6xl">{children}</div>
         </main>
       </div>
+      
+      <AiTutor />
+      
       <SubjectModal />
       <UploadModal />
-      <AiTutor />
     </div>
   );
 }

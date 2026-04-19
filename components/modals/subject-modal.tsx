@@ -33,9 +33,7 @@ const SubjectSchema = z.object({
   hours: z.string().min(1, "Please select daily hours"),
   peak: z.enum(["morning", "night"]),
   intensity: z.number().min(0).max(100),
-  examDate: z.date({
-    required_error: "An exam date is required.",
-  }),
+  examDate: z.date(),
 });
 
 type SubjectFormValues = z.infer<typeof SubjectSchema>;

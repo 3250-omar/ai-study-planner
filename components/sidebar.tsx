@@ -40,9 +40,26 @@ const bottomItems = [
   // { name: "Account", href: "/dashboard/profile", icon: User },
 ];
 
-export function Sidebar() {
+import { logout } from "@/app/(dashboard)/_api/actions";
+import { useRouter } from "next/navigation";
+
+interface SidebarProps {
+  user: any;
+  profile: any;
+}
+
+export function Sidebar({ user, profile }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+  };
+
+  const displayName = profile?.name || user?.email?.split("@")[0] || "User";
+  const userEmail = user?.email || "";
+  const initials = displayName.charAt(0).toUpperCase();
 
   useEffect(() => {
     const handleResize = () => {
@@ -52,10 +69,7 @@ export function Sidebar() {
         setCollapsed(false);
       }
     };
-
-    // Trigger check on mount
     handleResize();
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -172,7 +186,6 @@ export function Sidebar() {
           <nav className="space-y-1">
             {bottomItems.map((item) => {
               const isActive = pathname === item.href;
-git 
               return (
                 <Link
                   key={item.name}
@@ -215,7 +228,7 @@ git
                   {!collapsed && (
                     <div className="flex flex-col overflow-hidden text-left">
                       <span className="text-sm font-semibold text-sidebar-foreground whitespace-nowrap">
-                        Alexander Vance
+                        {displayName}
                       </span>
                     </div>
                   )}
@@ -229,9 +242,9 @@ git
               >
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1 text-sm">
-                    <p className="font-medium leading-none">Alexander Vance</p>
+                    <p className="font-medium leading-none">{displayName}</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      alexander@aurastudy.com
+                      {userEmail}
                     </p>
                   </div>
                 </DropdownMenuLabel>
@@ -248,7 +261,10 @@ git
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
+                <DropdownMenuItem 
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                  onClick={handleLogout}
+                >
                   <LogOut className="mr-2 size-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>

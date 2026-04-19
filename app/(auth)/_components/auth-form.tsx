@@ -4,6 +4,7 @@ import * as React from "react";
 import * as z from "zod";
 import Link from "next/link";
 import { toast } from "sonner";
+import { login, signup } from "../_api/actions";
 
 import { Button } from "@/components/ui/button";
 import { GlobalForm, FormFieldConfig } from "@/components/global-form";
@@ -64,23 +65,35 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   const isLogin = mode === "login";
 
-  async function onSubmit() {
+  async function onSubmit(values: Record<string, any>) {
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      let result;
+      if (isLogin) {
+        result = await login(values);
+      } else {
+        result = await signup(values);
+      }
+
+      if (result?.error) {
+        toast.error("Authentication failed", {
+          description: result.error,
+        });
+        setIsLoading(false);
+      } else {
+        toast.success(
+          isLogin ? "Signed in successfully" : "Account created successfully",
+          {
+            description: `Welcome to AuraStudy! Redirecting...`,
+          },
+        );
+        // The server action handles redirect()
+      }
+    } catch (e) {
+      toast.error("An unexpected error occurred");
       setIsLoading(false);
-
-      // Show toast notification
-      toast.success(
-        isLogin ? "Signed in successfully" : "Account created successfully",
-        {
-          description: `Welcome to AuraStudy! Redirecting...`,
-        },
-      );
-
-      // router.push("/dashboard");
-    }, 1500);
+    }
   }
 
   const loginFields: FormFieldConfig[] = [

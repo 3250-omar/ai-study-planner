@@ -14,6 +14,10 @@ import { GlobalForm, FormFieldConfig } from "@/components/global-form";
 import * as z from "zod";
 import { Upload, X, File as FileIcon, CloudUpload } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
+
+import { useRouter } from "next/navigation";
 
 /* ------------------------------------------------------------------ */
 /*  Schema                                                             */
@@ -34,11 +38,62 @@ type UploadFormValues = z.infer<typeof uploadSchema>;
 export function UploadModal() {
   const { isOpen, closeModal } = useUploadModal();
   const [dragActive, setDragActive] = React.useState(false);
+  const [isUploading, setIsUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const supabase = createClient();
+  const router = useRouter();
 
-  const onSubmit = (values: UploadFormValues) => {
-    console.log("Upload Submitted:", values);
-    closeModal();
+  const onSubmit = async (values: UploadFormValues) => {
+    try {
+      setIsUploading(true);
+
+      const file = values.file as File;
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(7)}_${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // 1. Upload to Supabase Storage Bucket
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('library_files')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw new Error(uploadError.message || "Failed to upload file to storage.");
+      }
+
+      // 2. Insert metadata into 'library_documents' table
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+
+      if (!userId) {
+         throw new Error("You must be logged in to upload files.");
+      }
+
+      const { error: dbError } = await supabase
+        .from('library_documents')
+        .insert({
+           user_id: userId,
+           title: file.name,
+           file_path: filePath,
+           file_type: file.type || "application/octet-stream",
+           size_bytes: file.size,
+        });
+
+      if (dbError) {
+         throw new Error(dbError.message || "Failed to save document metadata.");
+      }
+
+      toast.success("File uploaded successfully!");
+      router.refresh(); // Refresh to show new files in the library
+      closeModal();
+    } catch (error: any) {
+      console.error("Upload failed", error);
+      toast.error("Upload failed", {
+        description: error.message || "An unexpected error occurred",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   /* ---- Drag handlers ---- */
@@ -208,11 +263,12 @@ export function UploadModal() {
             }}
             onSubmit={onSubmit}
             fields={fields}
+            isLoading={isUploading}
             className="gap-6"
             submitText={
               <span className="flex items-center gap-2">
                 <Upload className="size-4" />
-                Upload Material
+                {isUploading ? "Uploading..." : "Upload Material"}
               </span>
             }
             buttonClassName="h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg shadow-primary/20 mt-2"

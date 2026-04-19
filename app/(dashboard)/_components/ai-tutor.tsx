@@ -6,52 +6,41 @@ import { Bot, X, Send, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useChat, Message } from "ai/react";
 
-/* ------------------------------------------------------------------ */
-/*  Static mock conversation                                           */
-/* ------------------------------------------------------------------ */
-
-const staticMessages = [
-  {
-    role: "ai" as const,
-    content:
-      "Hello! I'm your AI study assistant. How can I help you study today?",
-  },
-  {
-    role: "user" as const,
-    content: "Can you explain the concept of quantum tunneling?",
-  },
-  {
-    role: "ai" as const,
-    content:
-      "Quantum tunneling is a phenomenon where a particle passes through a potential energy barrier that it classically shouldn't be able to cross.\n\nThink of it like a ball rolling towards a hill — classically, if it doesn't have enough energy, it can't get over. But in quantum mechanics, there's a non-zero probability the particle appears on the other side!\n\nThis is fundamental to many technologies including transistors and scanning tunneling microscopes.",
-  },
-  {
-    role: "user" as const,
-    content: "That's cool! Does it relate to semiconductors?",
-  },
-  {
-    role: "ai" as const,
-    content:
-      "Absolutely! Quantum tunneling is essential to how semiconductors work. In transistors, electrons tunnel through thin insulating barriers. Without tunneling, modern processors simply wouldn't function. It's one of those beautiful connections between quantum theory and everyday technology.",
-  },
-];
-
-/* ------------------------------------------------------------------ */
-/*  Component                                                          */
-/* ------------------------------------------------------------------ */
+import ReactMarkdown from "react-markdown";
+import { toast } from "sonner";
 
 export function AiTutor() {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [inputValue, setInputValue] = React.useState("");
+
+  const { messages, input, handleInputChange, handleSubmit, isLoading } =
+    useChat({
+      initialMessages: [
+        {
+          id: "sys-welcome",
+          role: "assistant",
+          content:
+            "Hello! I'm AuraStudy AI. I'll help you dive deep into your materials. What are we studying today?",
+        },
+      ],
+      onError: (error) => {
+        console.error("Chat error:", error);
+        toast.error(
+          error.message ||
+            "Failed to get a response from the AI. Check your API key.",
+        );
+      },
+    });
+
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
-  /* Scroll to bottom when opened */
+  /* Scroll to bottom when opened or messages change */
   React.useEffect(() => {
     if (isOpen && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [isOpen]);
+  }, [isOpen, messages]);
 
   return (
     <>
@@ -88,9 +77,7 @@ export function AiTutor() {
               <div className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-green-500 ring-2 ring-card" />
             </div>
             <div>
-              <h3 className="text-sm font-bold leading-none">
-                Aura AI Tutor
-              </h3>
+              <h3 className="text-sm font-bold leading-none">Aura AI Tutor</h3>
               <p className="text-[10px] text-green-500 font-semibold uppercase tracking-wider mt-1">
                 Online
               </p>
@@ -108,57 +95,77 @@ export function AiTutor() {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          {staticMessages.map((msg, i) => (
+          {messages.map((msg: Message) => (
             <div
-              key={i}
+              key={msg.id}
               className={cn(
                 "flex",
-                msg.role === "user" ? "justify-end" : "justify-start"
+                msg.role === "user" ? "justify-end" : "justify-start",
               )}
             >
               {/* AI avatar */}
-              {msg.role === "ai" && (
+              {msg.role !== "user" && (
                 <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary mr-2 mt-1">
                   <Sparkles className="size-3" />
                 </div>
               )}
               <div
                 className={cn(
-                  "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-line",
+                  "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
                   msg.role === "user"
                     ? "bg-primary text-primary-foreground rounded-br-md"
-                    : "bg-muted text-foreground rounded-bl-md"
+                    : "bg-muted text-foreground rounded-bl-md",
                 )}
               >
-                {msg.content}
+                <div className="prose prose-sm prose-invert dark:prose-neutral max-w-none">
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                </div>
               </div>
             </div>
           ))}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary mr-2 mt-1">
+                <Sparkles className="size-3 animate-pulse" />
+              </div>
+              <div className="rounded-2xl bg-muted px-4 py-3 text-sm flex items-center gap-1 rounded-bl-md">
+                <span
+                  className="size-1.5 rounded-full bg-muted-foreground animate-bounce"
+                  style={{ animationDelay: "0ms" }}
+                />
+                <span
+                  className="size-1.5 rounded-full bg-muted-foreground animate-bounce"
+                  style={{ animationDelay: "150ms" }}
+                />
+                <span
+                  className="size-1.5 rounded-full bg-muted-foreground animate-bounce"
+                  style={{ animationDelay: "300ms" }}
+                />
+              </div>
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
 
         {/* Input Area */}
         <div className="p-4 border-t border-border/50 bg-card">
-          <div className="flex items-center gap-2">
+          <form className="flex items-center gap-2" onSubmit={handleSubmit}>
             <Input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              value={input}
+              onChange={handleInputChange}
               placeholder="Ask me anything..."
               className="flex-1 rounded-full h-10 bg-muted/50 border-border/50 px-4 text-sm"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && inputValue.trim()) {
-                  // Static — no-op for now
-                  setInputValue("");
-                }
-              }}
+              disabled={isLoading}
             />
             <Button
+              type="submit"
               size="icon"
+              disabled={isLoading || !input.trim()}
               className="size-10 rounded-full bg-primary text-primary-foreground shrink-0 shadow-md shadow-primary/20 hover:bg-primary/90"
             >
               <Send className="size-4" />
             </Button>
-          </div>
+          </form>
           <p className="text-center text-[10px] text-muted-foreground/50 mt-2">
             Powered by AuraStudy AI
           </p>
@@ -174,7 +181,7 @@ export function AiTutor() {
           "fixed bottom-6 right-6 z-50 flex size-14 items-center justify-center rounded-full shadow-xl transition-colors cursor-pointer",
           isOpen
             ? "bg-muted text-foreground shadow-lg"
-            : "bg-primary text-primary-foreground shadow-primary/30 hover:bg-primary/90"
+            : "bg-primary text-primary-foreground shadow-primary/30 hover:bg-primary/90",
         )}
         whileTap={{ scale: 0.9 }}
       >
