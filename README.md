@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AuraStudy: The Kinetic Curator
 
-## Getting Started
+Welcome to **AuraStudy** — a premium, AI-driven study planner and cognitive productivity dashboard built specifically for university students. 
 
-First, run the development server:
+AuraStudy is designed from the ground up to replace fragmented note-taking apps and manual study blocks with an intelligent, centralized command center.
+
+## 🚀 Features
+
+- **Dynamic Study Planner**: Master your academic timeline. Plan Pomodoro sessions and allocate deep work blocks mathematically aligned to your exam schedules.
+- **Smart Library & OCR**: Upload your PDFs and coursework. AuraStudy extracts, vectors, and analyzes your material so the AI Tutor can test you on it.
+- **Floating AI Tutor**: A persistent, context-aware AI assistant utilizing Framer-Motion physics that stays with you across every page. Built to quiz you via active recall on your actual class documents—not hallucinated web data.
+- **Advanced Progress Analytics**:
+  - Auto-calculated Efficiency Baselines & Retention Rates.
+  - Interactive Recharts mapping your weekly actual study hours vs targets.
+  - Granular subject-focus breakdowns via dynamic pie/donut charts.
+  - **Export to PDF**: Generate instantaneous PDF reports of your statistics using native SVG-to-canvas rendering.
+- **Help Center & Platform Guide**: Full architectural guide detailing how to safely utilize the platform, including fully animated FAQs.
+- **Premium User Profile**: Custom Zod-validated data forms handling everything from profile management to 2FA toggles, dynamically grouped into responsive CSS grids.
+
+## 💻 Tech Stack
+
+- **Framework**: [Next.js 15 (App Router)](https://nextjs.org/) & React 19 Client/Server Components.
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) powered by a purely relative `oklch()` design system achieving flawless light/dark mode parity without hex codes.
+- **Component Primitives**: [shadcn/ui](https://ui.shadcn.com/) paired with Radix UI headless components.
+- **State Management**: [Zustand](https://github.com/pmndrs/zustand) for global modals, sidebars, and persistent floating elements.
+- **Forms**: `react-hook-form` + `zod` dynamically rendered via our resilient `<GlobalForm>` builder.
+- **Animations**: [Framer Motion](https://www.framer.com/motion/) for fluid page transitions, spring physics, and micro-interactions.
+- **Charts**: [Recharts](https://recharts.org/) native SVG-based charting optimized via React wrappers.
+
+## 🖌️ Design System
+This project heavily leans away from "standard" blue/white templates. We use deep background cards, micro-borders, gradient typography (`.bg-brand-gradient`), and intense shadow physics to create a modern desktop SaaS environment. All CSS variables in `globals.css` are calculated mathematically using OKLCH to allow total color harmony across themes.
+
+## 🛠️ Getting Started
+
+First, install the required dependencies (ensure you are using `yarn` or `npm`):
+
+```bash
+npm install
+# or
+yarn install
+```
+
+Then, boot the local development server:
 
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the platform. Navigate to `/dashboard` to explore the core application shell!
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📂 Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `app/(dashboard)`: The secured SaaS shell encapsulating all logic for the Sidebar, Analytics, Library, Profile, Help Center, etc.
+- `app/(auth)`: The public-facing entry gates (Sign In / Sign Up) masked via polished glassmorphic forms.
+- `app/_components`: Shared landing page layouts.
+- `components/ui`: Isolated Shadcn UI primitives.
+- `components/modals`: Global dialogue boxes managed strictly by Zustand stores (like the Upload Modal).
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🔮 Future Roadmap
+- Complete Supabase Backend infrastructure for Auth & Storage buckets.
+- Wire the AI Tutor to real OpenAI embeddings based on the `Library` PDF uploads.
+- Cloud sync the Analytics Dashboard metrics.
