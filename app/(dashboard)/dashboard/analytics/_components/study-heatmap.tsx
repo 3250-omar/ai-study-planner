@@ -1,12 +1,8 @@
 import { cn } from "@/lib/utils";
 
-// Generate random heatmap data for 14 weeks (98 days) outside the component 
-// so the component remains pure and idempotent for every render.
-const days = Array.from({ length: 98 }).map(() => ({
-  intensity: Math.floor(Math.random() * 5), // 0 to 4
-}));
+export type HeatmapDay = { date: string; intensity: 0 | 1 | 2 | 3 | 4 };
 
-export function StudyHeatmap() {
+export function StudyHeatmap({ days }: { days: HeatmapDay[] }) {
   
   return (
     <div className="rounded-2xl border border-border/50 bg-card p-6 md:p-8 shadow-sm w-full">
@@ -39,13 +35,14 @@ export function StudyHeatmap() {
                     key={`day-${weekIdx}-${dayIdx}`}
                     className={cn(
                       "size-3.5 sm:size-4 rounded-sm transition-colors hover:ring-2 hover:ring-primary/50 cursor-crosshair",
-                      day.intensity === 0 && "bg-muted/40",
-                      day.intensity === 1 && "bg-[#818cf8]/30",
-                      day.intensity === 2 && "bg-[#818cf8]/60",
-                      day.intensity === 3 && "bg-[#6366f1]",
-                      day.intensity === 4 && "bg-[#4f46e5] shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+                      day?.intensity === 0 && "bg-muted/40",
+                      day?.intensity === 1 && "bg-[#818cf8]/30",
+                      day?.intensity === 2 && "bg-[#818cf8]/60",
+                      day?.intensity === 3 && "bg-[#6366f1]",
+                      day?.intensity === 4 && "bg-[#4f46e5] shadow-[0_0_8px_rgba(99,102,241,0.5)]",
+                      !day && "bg-muted/40",
                     )}
-                    title={`Study intensity level: ${day.intensity}`}
+                    title={`Study intensity level: ${day?.intensity ?? 0}`}
                   />
                 )
               })}

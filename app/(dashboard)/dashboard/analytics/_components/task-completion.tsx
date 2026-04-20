@@ -1,4 +1,16 @@
-export function TaskCompletion() {
+export function TaskCompletion({
+  completed,
+  total,
+  deepWorkSessions,
+  avgRetentionPct,
+}: {
+  completed: number;
+  total: number;
+  deepWorkSessions: number;
+  avgRetentionPct: number;
+}) {
+  const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+
   return (
     <div className="rounded-2xl border border-border/50 bg-card p-6 md:p-8 shadow-sm flex flex-col lg:flex-row gap-8 lg:gap-12 w-full">
       <div className="flex-1 space-y-6">
@@ -8,10 +20,10 @@ export function TaskCompletion() {
           </h3>
           <div className="flex items-baseline gap-1.5">
             <span className="text-3xl font-extrabold tracking-tight text-foreground">
-              24
+              {completed}
             </span>
             <span className="text-sm font-semibold text-muted-foreground">
-              / 30
+              / {total}
             </span>
           </div>
         </div>
@@ -19,14 +31,14 @@ export function TaskCompletion() {
         {/* Progress Bar */}
         <div className="h-3 w-full bg-muted/50 overflow-hidden rounded-full ring-1 ring-inset ring-muted/20">
           <div
-            className="h-full bg-gradient-to-r from-[#818cf8] to-[#c7d2fe] rounded-full shadow-[0_0_10px_rgba(129,140,248,0.5)]"
-            style={{ width: "80%" }}
+            className="h-full bg-linear-to-r from-[#818cf8] to-[#c7d2fe] rounded-full shadow-[0_0_10px_rgba(129,140,248,0.5)]"
+            style={{ width: `${pct}%` }}
           />
         </div>
 
         <p className="text-sm text-muted-foreground leading-relaxed md:pr-10">
-          Great work! You&apos;ve completed 80% of your weekly targets. 6
-          pending items remain.
+          Great work! You&apos;ve completed {pct}% of your weekly targets.{" "}
+          {Math.max(total - completed, 0)} pending items remain.
         </p>
       </div>
 
@@ -36,7 +48,7 @@ export function TaskCompletion() {
             Deep Work Sessions
           </span>
           <div className="text-4xl font-extrabold tracking-tight text-foreground">
-            14
+            {deepWorkSessions}
           </div>
         </div>
 
@@ -45,7 +57,7 @@ export function TaskCompletion() {
             Avg. Retention
           </span>
           <div className="text-4xl font-extrabold tracking-tight text-foreground">
-            92%
+            {avgRetentionPct}%
           </div>
         </div>
       </div>

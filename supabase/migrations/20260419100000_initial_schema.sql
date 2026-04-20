@@ -1,5 +1,9 @@
 -- Initial Database Schema
 
+ -- Ensure UUID generation is available
+ create extension if not exists "uuid-ossp";
+ create extension if not exists "pgcrypto";
+ 
 -- Custom types
 CREATE TYPE study_status AS ENUM ('planned', 'in-progress', 'completed', 'missed');
 
@@ -28,7 +32,7 @@ CREATE POLICY "Users can update their own profile." ON public.user_profiles
 -- Table: library_documents
 -- Stores metadata about the documents uploaded to the Supabase Storage Bucket ('library_files')
 CREATE TABLE public.library_documents (
-    id UUID DEFAULT uuid_generate_v4() NOT NULL,
+    id UUID DEFAULT gen_random_uuid() NOT NULL,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     file_path TEXT NOT NULL, -- Path in the storage bucket
@@ -46,7 +50,7 @@ CREATE POLICY "Users can manage their own documents." ON public.library_document
 
 -- Table: study_sessions
 CREATE TABLE public.study_sessions (
-    id UUID DEFAULT uuid_generate_v4() NOT NULL,
+    id UUID DEFAULT gen_random_uuid() NOT NULL,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     subject TEXT NOT NULL,
     title TEXT NOT NULL,
@@ -84,9 +88,6 @@ CREATE TRIGGER on_auth_user_created
 
 -- Create a storage bucket for library materials
 INSERT INTO storage.buckets (id, name, public) VALUES ('library_files', 'library_files', false) ON CONFLICT DO NOTHING;
-
--- Enable RLS on the storage bucket
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
 
 -- Storage Policies for 'library_files'
 

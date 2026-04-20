@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Popover,
   PopoverContent,
@@ -17,23 +16,20 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { useSubjectModal } from "@/store/use-subject-modal";
-import {
-  Sun,
-  Moon,
-  Sparkles,
-  Hourglass,
-  Calendar as CalendarIcon,
-} from "lucide-react";
+import { Sparkles, Hourglass, Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GlobalForm, FormFieldConfig } from "@/components/global-form";
 import * as z from "zod";
 import { format } from "date-fns";
+import { upsertSubject } from "@/app/(dashboard)/_api/actions";
+import { toast } from "sonner";
 
 const SubjectSchema = z.object({
-  hours: z.string().min(1, "Please select daily hours"),
-  peak: z.enum(["morning", "night"]),
-  intensity: z.number().min(0).max(100),
+  title: z.string().min(1, "Subject name is required"),
+  category: z.string().optional().default(""),
+  difficulty: z.number().min(1).max(5),
   examDate: z.date(),
+  tags: z.string().optional().default(""),
 });
 
 type SubjectFormValues = z.infer<typeof SubjectSchema>;
@@ -41,101 +37,45 @@ type SubjectFormValues = z.infer<typeof SubjectSchema>;
 export function SubjectModal() {
   const { isOpen, closeModal } = useSubjectModal();
 
-  const onSubmit = (values: SubjectFormValues) => {
-    console.log("Form Submitted:", values);
+  const onSubmit = async (values: SubjectFormValues) => {
+    const result = await upsertSubject({
+      title: values.title,
+      category: values.category?.trim() ? values.category.trim() : null,
+      exam_date: values.examDate
+        ? values.examDate.toISOString().slice(0, 10)
+        : null,
+      difficulty: values.difficulty,
+      tags: values.tags
+        ? values.tags
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : [],
+    });
+
+    if ("error" in result) {
+      toast.error("Failed to save subject", {
+        description: result.error,
+      });
+      return;
+    }
+
+    toast.success("Subject saved");
     closeModal();
   };
 
   const fields: FormFieldConfig[] = [
     {
-      name: "hours",
-      label: "Daily Available Hours",
-      render: ({ field }) => (
-        <ToggleGroup
-          type="single"
-          value={field.value}
-          onValueChange={(val) => val && field.onChange(val)}
-          className="justify-start gap-2"
-        >
-          {["1h", "2h", "4h", "6h", "8h+"].map((h) => (
-            <ToggleGroupItem
-              key={h}
-              value={h}
-              className={cn(
-                "size-12 rounded-xl border border-border bg-background transition-all hover:bg-muted data-[state=on]:bg-indigo-600 data-[state=on]:text-white data-[state=on]:border-indigo-600 font-medium",
-              )}
-            >
-              {h}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-      ),
+      name: "title",
+      label: "Subject Name",
+      placeholder: "e.g., Linear Algebra, Organic Chemistry",
+      autoCapitalize: "words",
     },
     {
-      name: "peak",
-      label: "Cognitive Peak Window",
-      render: ({ field }) => (
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            type="button"
-            onClick={() => field.onChange("morning")}
-            className={cn(
-              "flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border transition-all h-32",
-              field.value === "morning"
-                ? "border-indigo-600 bg-indigo-500/3 shadow-[0_0_20px_rgba(79,70,229,0.1)]"
-                : "border-border bg-background hover:bg-muted",
-            )}
-          >
-            <Sun
-              className={cn(
-                "size-6",
-                field.value === "morning"
-                  ? "text-indigo-500"
-                  : "text-muted-foreground",
-              )}
-            />
-            <span
-              className={cn(
-                "font-semibold text-sm",
-                field.value === "morning"
-                  ? "text-foreground"
-                  : "text-muted-foreground",
-              )}
-            >
-              Morning Peaks
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => field.onChange("night")}
-            className={cn(
-              "flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border transition-all h-32",
-              field.value === "night"
-                ? "border-indigo-600 bg-indigo-500/3 shadow-[0_0_20px_rgba(79,70,229,0.1)]"
-                : "border-border bg-background hover:bg-muted",
-            )}
-          >
-            <Moon
-              className={cn(
-                "size-6",
-                field.value === "night"
-                  ? "text-indigo-500"
-                  : "text-muted-foreground",
-              )}
-            />
-            <span
-              className={cn(
-                "font-semibold text-sm",
-                field.value === "night"
-                  ? "text-foreground"
-                  : "text-muted-foreground",
-              )}
-            >
-              Night Owl
-            </span>
-          </button>
-        </div>
-      ),
+      name: "category",
+      label: "Category",
+      placeholder: "e.g., Science, Tech, Economics",
+      autoCapitalize: "words",
     },
     {
       name: "examDate",
@@ -171,28 +111,35 @@ export function SubjectModal() {
       ),
     },
     {
-      name: "intensity",
-      label: "Focus Intensity",
+      name: "difficulty",
+      label: "Difficulty (1–5)",
       render: ({ field }) => (
         <div className="space-y-6 pt-2">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-indigo-500 uppercase">
-              Current Setting: {field.value}%
+              Current Setting: {field.value}
             </span>
           </div>
           <Slider
             value={[field.value]}
             onValueChange={(val) => field.onChange(val[0])}
-            max={100}
+            min={1}
+            max={5}
             step={1}
             className="**:data-[slot=slider-range]:bg-indigo-500 **:data-[slot=slider-thumb]:border-indigo-500"
           />
           <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">
-            <span>Steady Flow</span>
-            <span>High Intensity</span>
+            <span>Easy</span>
+            <span>Hard</span>
           </div>
         </div>
       ),
+    },
+    {
+      name: "tags",
+      label: "Tags",
+      description: "Optional — comma-separated (e.g., LEVEL 200, THEORETICAL)",
+      placeholder: "e.g., LEVEL 200, THEORETICAL",
     },
   ];
 
@@ -220,17 +167,18 @@ export function SubjectModal() {
             <GlobalForm
               schema={SubjectSchema}
               defaultValues={{
-                hours: "4h",
-                peak: "morning",
-                intensity: 75,
+                title: "",
+                category: "",
+                difficulty: 3,
                 examDate: new Date(),
+                tags: "",
               }}
               onSubmit={onSubmit}
               fields={fields}
               className="gap-8"
               submitText={
                 <span className="flex items-center gap-3">
-                  Generate Plan
+                  Save Subject
                   <Sparkles className="size-5 group-hover:rotate-12 transition-transform" />
                 </span>
               }

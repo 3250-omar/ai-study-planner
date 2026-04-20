@@ -1,0 +1,10 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://openrouter.ai/api",
+    "ANTHROPIC_AUTH_TOKEN": "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",
+    "ANTHROPIC_API_KEY": "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",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "z-ai/glm-4.5-air:free",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "z-ai/glm-4.5-air:free",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "z-ai/glm-4.5-air:free"
+  }
+}

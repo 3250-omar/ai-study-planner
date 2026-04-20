@@ -2,8 +2,11 @@ import { GreetingWidget } from "../_components/greeting-widget";
 import { ConsistencyWidget } from "../_components/consistency-widget";
 import { StudyPlanList } from "../_components/study-plan-list";
 import { ProgressOverview } from "../_components/progress-widget";
+import { getTodayStudyPlan } from "../_api/queries";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const sessions = await getTodayStudyPlan();
+
   return (
     <div className="flex flex-col gap-8 pb-10">
       {/* Top Row */}
@@ -23,7 +26,7 @@ export default function DashboardPage() {
             <ConsistencyWidget />
           </div>
 
-          <StudyPlanList />
+          <StudyPlanList sessions={sessions} />
         </div>
 
         {/* Sidebar Column */}
@@ -52,7 +55,7 @@ export default function DashboardPage() {
               <h4 className="font-semibold text-foreground">
                 Midterm Exam in 3 Days
               </h4>
-              <p className="text-xs text-muted-foreground mt-0.5 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Foundations of Law: Section A.
               </p>
             </div>

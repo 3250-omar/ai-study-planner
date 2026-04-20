@@ -1,14 +1,17 @@
-import { Zap, Clock, Book } from "lucide-react";
+import { Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const sessions = [
-  { topic: "Vector Calculus: Green's Theorem", date: "Oct 24, 2023", duration: "2h 15m", efficiency: 94, mode: "DEEP WORK", icon: Zap },
-  { topic: "Neural Networks Architecture", date: "Oct 23, 2023", duration: "1h 45m", efficiency: 88, mode: "STEADY", icon: Clock },
-  { topic: "Macroeconomics: Monetary Policy", date: "Oct 22, 2023", duration: "45m", efficiency: 91, mode: "DEEP WORK", icon: Zap },
-  { topic: "Discrete Mathematics: Logic", date: "Oct 21, 2023", duration: "3h 00m", efficiency: 72, mode: "PASSIVE", icon: Book },
-];
+export type RecentSession = {
+  id: string;
+  topic: string;
+  date: string;
+  duration: string;
+  efficiency: number;
+  mode: string;
+  icon: typeof Zap;
+};
 
-export function RecentSessionsTable() {
+export function RecentSessionsTable({ sessions }: { sessions: RecentSession[] }) {
   return (
     <div className="rounded-2xl border border-border/50 bg-card shadow-sm overflow-hidden w-full">
       <div className="flex items-center justify-between p-6 border-b border-border/50">

@@ -2,13 +2,15 @@
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
-const data = [
-  { name: "Quantum Physics", value: 42, color: "#818cf8" }, // Indigo
-  { name: "Linear Algebra", value: 30, color: "#fb923c" }, // Orange
-  { name: "Neuroscience", value: 28, color: "#475569" }, // Slate
-];
+export type SubjectFocusSlice = { name: string; value: number; color: string };
 
-export function SubjectFocusChart() {
+export function SubjectFocusChart({
+  data,
+  totalHoursLabel,
+}: {
+  data: SubjectFocusSlice[];
+  totalHoursLabel: string;
+}) {
   return (
     <div className="rounded-2xl border border-border/50 bg-card p-6 md:p-8 shadow-sm flex flex-col h-[320px]">
       <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
@@ -42,7 +44,7 @@ export function SubjectFocusChart() {
           </ResponsiveContainer>
           {/* Inner Label */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-2xl font-bold tracking-tight">42h</span>
+            <span className="text-2xl font-bold tracking-tight">{totalHoursLabel}</span>
             <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mt-0.5">
               Total
             </span>

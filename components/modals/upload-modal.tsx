@@ -18,6 +18,7 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
 import { useRouter } from "next/navigation";
+import { createLibraryDocumentRow } from "@/app/(dashboard)/_api/actions";
 
 /* ------------------------------------------------------------------ */
 /*  Schema                                                             */
@@ -48,48 +49,45 @@ export function UploadModal() {
       setIsUploading(true);
 
       const file = values.file as File;
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${Math.random().toString(36).substring(7)}_${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
       // 1. Upload to Supabase Storage Bucket
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('library_files')
+      const { error: uploadError } = await supabase.storage
+        .from("library_files")
         .upload(filePath, file);
 
       if (uploadError) {
-        throw new Error(uploadError.message || "Failed to upload file to storage.");
+        throw new Error(
+          uploadError.message || "Failed to upload file to storage.",
+        );
       }
 
-      // 2. Insert metadata into 'library_documents' table
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData?.user?.id;
+      // 2. Insert metadata into DB via server action (enforces RLS)
+      const result = await createLibraryDocumentRow({
+        title: file.name,
+        original_filename: file.name,
+        file_path: filePath,
+        file_type: file.type || "application/octet-stream",
+        size_bytes: file.size,
+        subject: values.subject,
+        description: values.description ?? "",
+      });
 
-      if (!userId) {
-         throw new Error("You must be logged in to upload files.");
-      }
-
-      const { error: dbError } = await supabase
-        .from('library_documents')
-        .insert({
-           user_id: userId,
-           title: file.name,
-           file_path: filePath,
-           file_type: file.type || "application/octet-stream",
-           size_bytes: file.size,
-        });
-
-      if (dbError) {
-         throw new Error(dbError.message || "Failed to save document metadata.");
+      if ("error" in result) {
+        throw new Error(result.error || "Failed to save document metadata.");
       }
 
       toast.success("File uploaded successfully!");
       router.refresh(); // Refresh to show new files in the library
       closeModal();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Upload failed", error);
+      const message =
+        error instanceof Error ? error.message : "An unexpected error occurred";
       toast.error("Upload failed", {
-        description: error.message || "An unexpected error occurred",
+        description: message,
       });
     } finally {
       setIsUploading(false);

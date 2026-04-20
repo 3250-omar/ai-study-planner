@@ -2,17 +2,9 @@
 
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 
-const data = [
-  { day: "MON", actual: 1.5, target: 4 },
-  { day: "TUE", actual: 1.8, target: 4 },
-  { day: "WED", actual: 2.2, target: 4 },
-  { day: "THU", actual: 4.8, target: 4 },
-  { day: "FRI", actual: 3.1, target: 4 },
-  { day: "SAT", actual: 7.2, target: 4 },
-  { day: "SUN", actual: 4.0, target: 4 },
-];
+export type WeeklyStudyPoint = { day: string; actual: number; target: number };
 
-export function WeeklyStudyChart() {
+export function WeeklyStudyChart({ data }: { data: WeeklyStudyPoint[] }) {
   return (
     <div className="rounded-2xl border border-border/50 bg-card p-6 md:p-8 shadow-sm flex flex-col h-[320px]">
       <div className="flex items-center justify-between mb-8">
