@@ -1,12 +1,13 @@
 import { create } from "zustand";
 
-interface UploadModalStore {
+interface AiTutorModalStore {
   isOpen: boolean;
   openModal: () => void;
   closeModal: () => void;
+  toggleModal: () => void;
 }
 
-export const useUploadModal = create<UploadModalStore>((set) => ({
+export const useAiTutorModal = create<AiTutorModalStore>((set) => ({
   isOpen: false,
   openModal: () => set({ isOpen: true }),
   closeModal: () => set({ isOpen: false }),

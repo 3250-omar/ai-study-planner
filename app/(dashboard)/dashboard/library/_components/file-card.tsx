@@ -21,13 +21,6 @@ export interface FileItem {
   created_at: string;
 }
 
-const getFileIcon = (fileType: string) => {
-  if (fileType.includes("pdf")) return BookOpen;
-  if (fileType.includes("word") || fileType.includes("doc")) return FileText;
-  if (fileType.includes("presentation") || fileType.includes("pptx")) return Presentation;
-  return StickyNote;
-};
-
 const getFileGradient = (index: number) => {
   const gradients = [
     "from-slate-500/80 to-slate-700/80 dark:from-slate-600 dark:to-slate-800",
@@ -46,15 +39,21 @@ const formatSize = (bytes: number) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
-
 /* ------------------------------------------------------------------ */
 /*  Grid Card                                                          */
 /* ------------------------------------------------------------------ */
 
-export function FileGridCard({ file, index }: { file: FileItem; index: number }) {
-  const Icon = getFileIcon(file.file_type);
+export function FileGridCard({
+  file,
+  index,
+}: {
+  file: FileItem;
+  index: number;
+}) {
   const gradient = getFileGradient(index);
-  const formattedDate = formatDistanceToNow(new Date(file.created_at), { addSuffix: true });
+  const formattedDate = formatDistanceToNow(new Date(file.created_at), {
+    addSuffix: true,
+  });
   const size = formatSize(file.size_bytes);
 
   return (
@@ -63,7 +62,7 @@ export function FileGridCard({ file, index }: { file: FileItem; index: number })
       <div
         className={cn(
           "relative flex items-center justify-center h-44 bg-gradient-to-br overflow-hidden",
-          gradient
+          gradient,
         )}
       >
         {/* Decorative document lines */}
@@ -82,10 +81,20 @@ export function FileGridCard({ file, index }: { file: FileItem; index: number })
         {/* File type icon */}
         <div
           className={cn(
-            "relative flex size-12 items-center justify-center rounded-xl text-white shadow-lg bg-primary/20 backdrop-blur-md ring-1 ring-white/20"
+            "relative flex size-12 items-center justify-center rounded-xl text-white shadow-lg bg-primary/20 backdrop-blur-md ring-1 ring-white/20",
           )}
         >
-          <Icon className="size-6" />
+          {file.file_type.includes("pdf") ? (
+            <BookOpen className="size-6" />
+          ) : file.file_type.includes("word") ||
+            file.file_type.includes("doc") ? (
+            <FileText className="size-6" />
+          ) : file.file_type.includes("presentation") ||
+            file.file_type.includes("pptx") ? (
+            <Presentation className="size-6" />
+          ) : (
+            <StickyNote className="size-6" />
+          )}
         </div>
 
         {/* Hover overlay */}
@@ -129,10 +138,17 @@ export function FileGridCard({ file, index }: { file: FileItem; index: number })
 /*  List Row                                                           */
 /* ------------------------------------------------------------------ */
 
-export function FileListRow({ file, index }: { file: FileItem; index: number }) {
-  const Icon = getFileIcon(file.file_type);
+export function FileListRow({
+  file,
+  index,
+}: {
+  file: FileItem;
+  index: number;
+}) {
   const gradient = getFileGradient(index);
-  const formattedDate = formatDistanceToNow(new Date(file.created_at), { addSuffix: true });
+  const formattedDate = formatDistanceToNow(new Date(file.created_at), {
+    addSuffix: true,
+  });
   const size = formatSize(file.size_bytes);
 
   return (
@@ -141,10 +157,20 @@ export function FileListRow({ file, index }: { file: FileItem; index: number }) 
       <div
         className={cn(
           "flex size-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white",
-          gradient
+          gradient,
         )}
       >
-        <Icon className="size-5" />
+        {file.file_type.includes("pdf") ? (
+          <BookOpen className="size-5" />
+        ) : file.file_type.includes("word") ||
+          file.file_type.includes("doc") ? (
+          <FileText className="size-5" />
+        ) : file.file_type.includes("presentation") ||
+          file.file_type.includes("pptx") ? (
+          <Presentation className="size-5" />
+        ) : (
+          <StickyNote className="size-5" />
+        )}
       </div>
 
       {/* Info */}
@@ -179,4 +205,3 @@ export function FileListRow({ file, index }: { file: FileItem; index: number }) 
     </div>
   );
 }
-

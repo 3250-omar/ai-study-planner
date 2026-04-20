@@ -10,9 +10,10 @@ import { useChat, Message } from "ai/react";
 
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
+import { useAiTutorModal } from "@/store/use-ai-tutor-modal";
 
 export function AiTutor() {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const { isOpen, closeModal, toggleModal } = useAiTutorModal();
 
   const { messages, input, handleInputChange, handleSubmit, isLoading } =
     useChat({
@@ -87,7 +88,7 @@ export function AiTutor() {
             variant="ghost"
             size="icon"
             className="size-8 rounded-full text-muted-foreground hover:text-foreground"
-            onClick={() => setIsOpen(false)}
+            onClick={closeModal}
           >
             <X className="size-4" />
           </Button>
@@ -176,7 +177,7 @@ export function AiTutor() {
       {/*  FAB – Floating Action Button                                */}
       {/* ============================================================ */}
       <motion.button
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={toggleModal}
         className={cn(
           "fixed bottom-6 right-6 z-50 flex size-14 items-center justify-center rounded-full shadow-xl transition-colors cursor-pointer",
           isOpen

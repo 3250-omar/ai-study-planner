@@ -1,6 +1,23 @@
 import { Sparkles } from "lucide-react";
 
-export function GreetingWidget() {
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Morning";
+  if (hour < 17) return "Afternoon";
+  return "Evening";
+}
+
+interface GreetingWidgetProps {
+  userName?: string;
+  aiInsight?: string;
+}
+
+export function GreetingWidget({
+  userName = "there",
+  aiInsight = "You've shown 15% better retention during evening sessions. Consider moving your review sessions to later in the day.",
+}: GreetingWidgetProps) {
+  const greeting = getGreeting();
+
   return (
     <div className="relative overflow-hidden rounded-2xl bg-card p-8 border border-border/50 shadow-sm col-span-1 lg:col-span-2">
       {/* Decorative Background Elements */}
@@ -21,14 +38,11 @@ export function GreetingWidget() {
       <div className="relative z-10 flex h-full flex-col justify-between gap-8">
         <div>
           <h2 className="text-3xl font-bold tracking-tight mb-2">
-            Morning, Alex. Ready to focus?
+            {greeting}, {userName}. Ready to focus?
           </h2>
           <p className="text-muted-foreground text-lg max-w-xl leading-relaxed">
-            Your goal today is to master 3 core concepts in{" "}
-            <span className="font-semibold text-primary/80">
-              Advanced Macroeconomics
-            </span>
-            .
+            Let&apos;s make today productive. Check your study plan and keep the
+            momentum going.
           </p>
         </div>
 
@@ -38,8 +52,7 @@ export function GreetingWidget() {
             <Sparkles className="size-4" />
           </div>
           <p className="text-sm font-medium leading-relaxed italic text-foreground/80">
-            &ldquo;You&apos;ve shown 15% better retention during evening sessions.
-            Consider moving your &apos;Quantum Physics&apos; review to 7 PM today.&rdquo;
+            &ldquo;{aiInsight}&rdquo;
             <span className="block mt-1 text-xs font-semibold not-italic text-primary/60">
               — Aura AI
             </span>

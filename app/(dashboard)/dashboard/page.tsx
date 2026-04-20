@@ -2,20 +2,46 @@ import { GreetingWidget } from "../_components/greeting-widget";
 import { ConsistencyWidget } from "../_components/consistency-widget";
 import { StudyPlanList } from "../_components/study-plan-list";
 import { ProgressOverview } from "../_components/progress-widget";
-import { getTodayStudyPlan } from "../_api/queries";
+import { QuickActions } from "../_components/quick-actions";
+import { RecentActivity } from "../_components/recent-activity";
+import { DeadlineAlert } from "../_components/deadline-alert";
+import { WeeklyChart } from "../_components/weekly-chart";
+import { SmartSummaries } from "./library/_components/smart-summaries";
+import {
+  getTodayStudyPlan,
+  getUserProfile,
+  getRecentStudySessions,
+  getSubjects,
+  getWeeklyStudyHours,
+} from "../_api/queries";
+import { useUploadModal } from "@/store/use-upload-modal";
 
 export default async function DashboardPage() {
-  const sessions = await getTodayStudyPlan();
+  const [sessions, userData, recentSessions, subjects, weeklyData] =
+    await Promise.all([
+      getTodayStudyPlan(),
+      getUserProfile(),
+      getRecentStudySessions(5),
+      getSubjects(),
+      getWeeklyStudyHours(),
+    ]);
 
+  const userName =
+    userData?.profile?.display_name ||
+    userData?.user?.email?.split("@")[0] ||
+    "there";
   return (
     <div className="flex flex-col gap-8 pb-10">
       {/* Top Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <GreetingWidget />
+        <GreetingWidget userName={userName} />
         <div className="col-span-1 hidden lg:block">
           <ConsistencyWidget />
         </div>
       </div>
+
+      {/* Quick Actions */}
+      <QuickActions />
 
       {/* Middle Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-12">
@@ -27,39 +53,20 @@ export default async function DashboardPage() {
           </div>
 
           <StudyPlanList sessions={sessions} />
+
+          {/* Smart Summaries Section */}
+          <SmartSummaries />
         </div>
 
         {/* Sidebar Column */}
-        <div className="col-span-1 flex flex-col gap-8">
+        <div className="col-span-1 flex flex-col gap-6">
           <ProgressOverview />
 
-          {/* Alert Widget placeholder */}
-          <div className="flex items-center gap-4 rounded-xl border border-destructive/20 bg-destructive/10 p-4">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-destructive/20 text-destructive">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-                <path d="M12 9v4" />
-                <path d="M12 17h.01" />
-              </svg>
-            </div>
-            <div>
-              <h4 className="font-semibold text-foreground">
-                Midterm Exam in 3 Days
-              </h4>
-              <p className="text-xs text-muted-foreground mt-1">
-                Foundations of Law: Section A.
-              </p>
-            </div>
-          </div>
+          <DeadlineAlert subjects={subjects} />
+
+          <WeeklyChart data={weeklyData} />
+
+          <RecentActivity sessions={recentSessions} />
         </div>
       </div>
     </div>
