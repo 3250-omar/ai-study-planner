@@ -5,6 +5,7 @@ import * as z from "zod";
 import Link from "next/link";
 import { toast } from "sonner";
 import { login, signup } from "../_api/actions";
+import { createClient } from "@/lib/supabase/client";
 
 import { Button } from "@/components/ui/button";
 import { GlobalForm, FormFieldConfig } from "@/components/global-form";
@@ -62,8 +63,30 @@ interface AuthFormProps {
 
 export function AuthForm({ mode }: AuthFormProps) {
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = React.useState(false);
 
   const isLogin = mode === "login";
+
+  async function handleGoogleSignIn() {
+    setIsGoogleLoading(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) {
+        toast.error("Google sign-in failed", { description: error.message });
+        setIsGoogleLoading(false);
+      }
+      // If successful, the browser will redirect to Google
+    } catch {
+      toast.error("An unexpected error occurred");
+      setIsGoogleLoading(false);
+    }
+  }
 
   async function onSubmit(values: Record<string, any>) {
     setIsLoading(true);
@@ -164,11 +187,12 @@ export function AuthForm({ mode }: AuthFormProps) {
         <Button
           variant="outline"
           type="button"
-          disabled={isLoading}
+          disabled={isLoading || isGoogleLoading}
+          onClick={handleGoogleSignIn}
           className="gap-2"
         >
           <GoogleIcon className="size-4" />
-          {isLogin ? "Sign in" : "Sign up"} with Google
+          {isGoogleLoading ? "Redirecting..." : `${isLogin ? "Sign in" : "Sign up"} with Google`}
         </Button>
 
         <div className="relative">

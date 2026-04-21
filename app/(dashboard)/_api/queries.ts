@@ -24,7 +24,7 @@ export async function getUserDocuments() {
 
   const { data: documents } = await supabase
     .from("library_documents")
-    .select("*")
+    .select("*, summary")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -259,4 +259,72 @@ export async function getTaskCompletionSummary(now = new Date()) {
   const avgRetentionPct = sessions.length === 0 ? 0 : 90; // keep UI stable; wire real metric later
 
   return { completed, total, deepWorkSessions, avgRetentionPct };
+}
+
+export async function getLibrarySummaries() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data: documents } = await supabase
+    .from("library_documents")
+    .select("id, title, subject, file_name, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(3);
+
+  // For now, we return these documents as "summaries-ready" items
+  return (documents || []).map(doc => ({
+    id: doc.id,
+    subject: doc.subject?.toUpperCase() || "GENERAL",
+    title: doc.title || doc.file_name,
+    description: `A systematic breakdown of your uploaded document ${doc.file_name}. Use the AI Tutor for a full context-aware brief.`,
+    readTime: 5,
+    subjectColor: doc.subject ? "bg-indigo-500" : "bg-slate-500"
+  }));
+}
+
+export async function getGlobalInsights() {
+  const now = new Date();
+  
+  // Weekly hours
+  const weekly = await getWeeklyStudyHours();
+  const currentTotal = weekly.reduce((sum, d) => sum + d.actual, 0);
+  
+  // Prev week
+  const prevWeekEnd = new Date(now);
+  prevWeekEnd.setDate(now.getDate() - 7);
+  const prevWeekStart = new Date(prevWeekEnd);
+  prevWeekStart.setDate(prevWeekStart.getDate() - 7);
+  const prevSessions = await getStudySessionsInRange(prevWeekStart.toISOString(), prevWeekEnd.toISOString());
+  const prevTotal = prevSessions.reduce((sum, s) => sum + (s.duration_minutes || 0), 0) / 60;
+
+  const velocity = prevTotal === 0 ? (currentTotal > 0 ? 100 : 0) : Math.round(((currentTotal - prevTotal) / prevTotal) * 100);
+
+  // Prep Score (Task completion last 30 days)
+  const taskSummary = await getTaskCompletionSummary();
+  const prepScore = taskSummary.total === 0 ? 0 : Math.round((taskSummary.completed / taskSummary.total) * 100);
+
+  return { velocity, prepScore };
+}
+
+export async function getUserTasks() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("study_tasks")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("due_at", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching tasks:", error);
+    return [];
+  }
+
+  return data;
 }

@@ -13,30 +13,49 @@ import {
   getRecentStudySessions,
   getSubjects,
   getWeeklyStudyHours,
+  getConsistencyHeatmap,
+  getSubjectFocusBreakdown,
+  getLibrarySummaries,
 } from "../_api/queries";
-import { useUploadModal } from "@/store/use-upload-modal";
 
 export default async function DashboardPage() {
-  const [sessions, userData, recentSessions, subjects, weeklyData] =
+  const [sessions, userData, recentSessions, subjects, weeklyData, heatmap, focus, summaries] =
     await Promise.all([
       getTodayStudyPlan(),
       getUserProfile(),
       getRecentStudySessions(5),
       getSubjects(),
       getWeeklyStudyHours(),
+      getConsistencyHeatmap(),
+      getSubjectFocusBreakdown(),
+      getLibrarySummaries(),
     ]);
 
   const userName =
     userData?.profile?.display_name ||
+    userData?.profile?.name ||
     userData?.user?.email?.split("@")[0] ||
     "there";
+
+  // Calculate streak from heatmap
+  let streak = 0;
+  for (let i = heatmap.length - 1; i >= 0; i--) {
+    if (heatmap[i].intensity > 0) streak++;
+    else break;
+  }
+
+  // Compute weekly goal progress
+  const weeklyGoal = userData?.profile?.weekly_goal_hours ?? 20;
+  const totalActualHours = weeklyData.reduce((sum, d) => sum + d.actual, 0);
+  const weeklyGoalPct = weeklyGoal > 0 ? Math.min(100, Math.round((totalActualHours / weeklyGoal) * 100)) : 0;
+
   return (
     <div className="flex flex-col gap-8 pb-10">
       {/* Top Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <GreetingWidget userName={userName} />
         <div className="col-span-1 hidden lg:block">
-          <ConsistencyWidget />
+          <ConsistencyWidget streak={streak} />
         </div>
       </div>
 
@@ -49,18 +68,22 @@ export default async function DashboardPage() {
         <div className="col-span-1 lg:col-span-2 flex flex-col gap-8">
           {/* Consistency widget for mobile (shown only on small screens) */}
           <div className="block lg:hidden">
-            <ConsistencyWidget />
+            <ConsistencyWidget streak={streak} />
           </div>
 
           <StudyPlanList sessions={sessions} />
 
           {/* Smart Summaries Section */}
-          <SmartSummaries />
+          <SmartSummaries initialSummaries={summaries} />
         </div>
 
         {/* Sidebar Column */}
         <div className="col-span-1 flex flex-col gap-6">
-          <ProgressOverview />
+          <ProgressOverview
+            weeklyGoalPct={weeklyGoalPct}
+            totalHours={totalActualHours}
+            subjectSlices={focus.slices}
+          />
 
           <DeadlineAlert subjects={subjects} />
 

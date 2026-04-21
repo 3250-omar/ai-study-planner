@@ -207,3 +207,136 @@ export async function completeStudyTask(input: {
   revalidatePath("/dashboard/analytics");
   return { ok: true };
 }
+
+export async function updateUserProfile(input: {
+  display_name?: string;
+  bio?: string;
+  study_method?: string;
+  weekly_goal_hours?: number;
+}): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { error } = await supabase
+    .from("user_profiles")
+    .update({
+      display_name: input.display_name,
+      bio: input.bio ?? "",
+      study_method: input.study_method,
+      weekly_goal_hours: input.weekly_goal_hours,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/dashboard/profile");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function updatePassword(input: {
+  newPassword: string;
+}): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { error } = await supabase.auth.updateUser({
+    password: input.newPassword,
+  });
+
+  if (error) return { error: error.message };
+
+  return { ok: true };
+}
+
+export async function updateStudySessionStatus(input: {
+  id: string;
+  status: "planned" | "in-progress" | "completed" | "missed";
+}): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { error } = await supabase
+    .from("study_sessions")
+    .update({ status: input.status })
+    .eq("id", input.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/analytics");
+  return { ok: true };
+}
+
+export async function deleteStudyTask(input: {
+  id: string;
+}): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { error } = await supabase
+    .from("study_tasks")
+    .delete()
+    .eq("id", input.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/dashboard/analytics");
+  return { ok: true };
+}
+
+export async function getDocumentsAction() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data } = await supabase
+    .from("library_documents")
+    .select("id, title, file_path")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  return data || [];
+}
+
+export async function getSignedUrlAction(filePath: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.storage
+    .from("library_files")
+    .createSignedUrl(filePath, 3600); // 1 hour
+
+  if (error) return { error: error.message };
+  return { url: data.signedUrl };
+}
+
+export async function triggerSummarize(documentId: string) {
+  // This triggers the internal API route
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const response = await fetch(`${baseUrl}/api/summarize`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ documentId }),
+  });
+  
+  if (!response.ok) {
+    const err = await response.json();
+    return { error: err.error || "Summarization failed" };
+  }
+  
+  return await response.json();
+}

@@ -12,8 +12,10 @@ import type { SubjectRow } from "@/app/(dashboard)/_api/queries";
 
 export default function SubjectsClient({
   subjects,
+  insights,
 }: {
   subjects: SubjectRow[];
+  insights: { velocity: number; prepScore: number };
 }) {
   const { openModal } = useSubjectModal();
   const [showFilters, setShowFilters] = React.useState(false);
@@ -87,8 +89,8 @@ export default function SubjectsClient({
           <div className="relative z-10 max-w-sm">
             <h3 className="text-2xl font-bold mb-3">Study Velocity</h3>
             <p className="text-muted-foreground mb-6 leading-relaxed">
-              Your AI-tracked focus hours have increased by{" "}
-              <strong className="text-foreground">14%</strong> this week across
+              Your AI-tracked focus hours have {insights.velocity >= 0 ? "increased" : "decreased"} by{" "}
+              <strong className="text-foreground">{Math.abs(insights.velocity)}%</strong> this week across
               all subjects.
             </p>
             <Button className="bg-indigo-500 hover:bg-indigo-600 text-white rounded-full px-6 h-10 w-fit">
@@ -100,12 +102,15 @@ export default function SubjectsClient({
 
         <Card className="p-8 rounded-2xl flex flex-col items-center justify-center border shadow-sm hover:border-primary/30 transition-all">
           <div className="text-center space-y-4 w-full">
-            <h3 className="text-5xl font-bold text-indigo-500">84%</h3>
+            <h3 className="text-5xl font-bold text-indigo-500">{insights.prepScore}%</h3>
             <div className="text-sm font-semibold tracking-wider text-muted-foreground uppercase">
               Preparation Score
             </div>
             <div className="h-2 w-full bg-muted rounded-full overflow-hidden mt-4">
-              <div className="h-full bg-indigo-500 w-[84%] rounded-full" />
+              <div 
+                className="h-full bg-indigo-500 transition-all duration-1000" 
+                style={{ width: `${insights.prepScore}%` }}
+              />
             </div>
           </div>
         </Card>

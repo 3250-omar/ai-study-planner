@@ -1,6 +1,17 @@
 import { Award } from "lucide-react";
 
-export function ConsistencyBadge() {
+interface ConsistencyBadgeProps {
+  streak: number;
+}
+
+export function ConsistencyBadge({ streak }: ConsistencyBadgeProps) {
+  // Calculate next tier threshold
+  const nextTier = streak >= 30 ? 60 : streak >= 14 ? 30 : streak >= 7 ? 14 : 7;
+  const daysToNext = Math.max(0, nextTier - streak);
+
+  // Filled bars based on streak
+  const filledBars = streak >= 14 ? 7 : streak >= 7 ? 5 : streak >= 3 ? 3 : streak >= 1 ? 1 : 0;
+
   return (
     <div className="relative rounded-2xl overflow-hidden border border-[#6366f1]/20 bg-gradient-to-br from-[#6366f1]/10 to-[#3730a3]/20 dark:to-[#312e81]/40 p-8 flex flex-col items-center justify-center text-center shadow-sm h-full group min-h-[220px]">
       {/* Glow */}
@@ -10,13 +21,24 @@ export function ConsistencyBadge() {
         <Award className="size-7" />
       </div>
 
-      <h2 className="relative z-10 text-xl font-bold tracking-tight mb-1 text-foreground">Consistency King</h2>
-      <p className="relative z-10 text-sm text-muted-foreground mb-6">12 Day Study Streak</p>
+      <h2 className="relative z-10 text-xl font-bold tracking-tight mb-1 text-foreground">
+        {streak >= 14 ? "Consistency King" : streak >= 7 ? "Streaker" : streak > 0 ? "Building Up" : "Start Your Streak"}
+      </h2>
+      <p className="relative z-10 text-sm text-muted-foreground mb-6">
+        {streak > 0 ? `${streak} Day Study Streak` : "No active streak"}
+      </p>
 
       {/* Ticks representation */}
       <div className="relative z-10 flex gap-1.5 mb-5">
-        {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-          <div key={i} className="h-6 w-2 rounded-full bg-[#818cf8] shadow-[0_0_8px_rgba(129,140,248,0.4)]" />
+        {Array.from({ length: 7 }).map((_, i) => (
+          <div
+            key={i}
+            className={`h-6 w-2 rounded-full ${
+              i < filledBars
+                ? "bg-[#818cf8] shadow-[0_0_8px_rgba(129,140,248,0.4)]"
+                : "bg-muted/60"
+            }`}
+          />
         ))}
         {[8, 9].map((i) => (
           <div key={i} className="h-6 w-2 rounded-full bg-muted/60" />
@@ -24,7 +46,7 @@ export function ConsistencyBadge() {
       </div>
 
       <p className="relative z-10 text-[9px] font-bold uppercase tracking-widest text-[#818cf8]/80">
-        2 MORE DAYS FOR NEXT TIER
+        {daysToNext > 0 ? `${daysToNext} MORE DAYS FOR NEXT TIER` : "MAX TIER REACHED!"}
       </p>
     </div>
   );

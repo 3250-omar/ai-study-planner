@@ -1,7 +1,14 @@
+"use client";
+
 import { Check, Calendar, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { StudySessionRow } from "@/app/(dashboard)/_api/queries";
 import { format } from "date-fns";
+import * as React from "react";
+import { updateStudySessionStatus } from "@/app/(dashboard)/_api/actions";
+import { toast } from "sonner";
+import { useSessionModal } from "@/store/use-session-modal";
+import { Button } from "@/components/ui/button";
 
 function formatTimeRange(startISO: string, endISO: string) {
   const start = new Date(startISO);
@@ -19,6 +26,18 @@ function toUiStatus(status: StudySessionRow["status"], startISO: string) {
 
 export function StudyPlanList({ sessions }: { sessions: StudySessionRow[] }) {
   const dateLabel = format(new Date(), "MMMM dd, yyyy");
+  const { openModal } = useSessionModal();
+
+  async function handleToggleStatus(id: string, currentStatus: "planned" | "in-progress" | "completed" | "missed") {
+    // If it's already completed, we don't allow un-completing for now (or we could flip to planned)
+    const newStatus = currentStatus === "completed" ? "planned" : "completed";
+    try {
+      const result = await updateStudySessionStatus({ id, status: newStatus });
+      if ("error" in result) throw new Error(result.error);
+    } catch {
+      toast.error("Failed to update status");
+    }
+  }
 
   const rows = sessions.map((s) => {
     const uiStatus = toUiStatus(s.status, s.start_time);
@@ -32,6 +51,7 @@ export function StudyPlanList({ sessions }: { sessions: StudySessionRow[] }) {
       time: formatTimeRange(s.start_time, s.end_time),
       tag,
       status: uiStatus as "in-progress" | "up-next" | "completed" | "planned",
+      rawStatus: s.status as "planned" | "in-progress" | "completed" | "missed",
     };
   });
 
@@ -42,7 +62,10 @@ export function StudyPlanList({ sessions }: { sessions: StudySessionRow[] }) {
           <Calendar className="size-5 text-muted-foreground" />
           <h3 className="text-xl font-bold tracking-tight">Daily Study Plan</h3>
         </div>
-        <span className="text-sm font-medium text-muted-foreground">{dateLabel}</span>
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="sm" onClick={openModal}>Add Session</Button>
+          <span className="text-sm font-medium text-muted-foreground hidden sm:inline">{dateLabel}</span>
+        </div>
       </div>
 
       <div className="flex flex-col gap-3">
@@ -66,6 +89,7 @@ export function StudyPlanList({ sessions }: { sessions: StudySessionRow[] }) {
             <div className="flex items-center gap-5">
               {/* Checkbox / Status Indicator */}
               <button
+                onClick={() => handleToggleStatus(session.id, session.rawStatus)}
                 className={cn(
                   "flex size-6 items-center justify-center rounded-full border transition-all",
                   session.status === "completed"

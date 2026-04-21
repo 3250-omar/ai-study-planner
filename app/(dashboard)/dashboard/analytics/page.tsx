@@ -12,6 +12,7 @@ import {
   getSubjectFocusBreakdown,
   getTaskCompletionSummary,
   getWeeklyStudyHours,
+  getStudySessionsInRange,
 } from "@/app/(dashboard)/_api/queries";
 import { Zap, Clock, Book } from "lucide-react";
 import { format } from "date-fns";
@@ -24,13 +25,38 @@ function formatDuration(minutes: number) {
 }
 
 export default async function AnalyticsPage() {
-  const [weekly, focus, heatmap, summary, recent] = await Promise.all([
+  // Current week
+  const now = new Date();
+
+  // Previous week range (for growth comparison)
+  const prevWeekEnd = new Date(now);
+  prevWeekEnd.setHours(0, 0, 0, 0);
+  prevWeekEnd.setDate(prevWeekEnd.getDate() - 7);
+  const prevWeekStart = new Date(prevWeekEnd);
+  prevWeekStart.setDate(prevWeekStart.getDate() - 7);
+
+  const [weekly, focus, heatmap, summary, recent, prevWeekSessions] = await Promise.all([
     getWeeklyStudyHours(),
     getSubjectFocusBreakdown(),
     getConsistencyHeatmap(),
     getTaskCompletionSummary(),
     getRecentStudySessions(10),
+    getStudySessionsInRange(prevWeekStart.toISOString(), prevWeekEnd.toISOString()),
   ]);
+
+  // Compute streak from heatmap
+  let streak = 0;
+  for (let i = heatmap.length - 1; i >= 0; i--) {
+    if (heatmap[i].intensity > 0) streak++;
+    else break;
+  }
+
+  // Compute current & previous week hours for growth comparison
+  const currentWeekHours = Math.round(weekly.reduce((sum, d) => sum + d.actual, 0) * 10) / 10;
+  const previousWeekHours =
+    Math.round(
+      prevWeekSessions.reduce((sum, s) => sum + (s.duration_minutes || 0), 0) / 6
+    ) / 10; // convert minutes to hours
 
   const recentRows = recent.map((s) => {
     const mins = s.duration_minutes || 0;
@@ -57,10 +83,14 @@ export default async function AnalyticsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Row 1 */}
           <div className="lg:col-span-2">
-            <GrowthOverview />
+            <GrowthOverview
+              currentWeekHours={currentWeekHours}
+              previousWeekHours={previousWeekHours}
+              retentionPct={summary.avgRetentionPct}
+            />
           </div>
           <div className="lg:col-span-1">
-            <ConsistencyBadge />
+            <ConsistencyBadge streak={streak} />
           </div>
 
           {/* Row 2 */}

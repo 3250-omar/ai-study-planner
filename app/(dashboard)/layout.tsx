@@ -3,6 +3,8 @@ import { Sidebar } from "@/components/sidebar";
 import { Topbar } from "@/components/topbar";
 import { SubjectModal } from "@/components/modals/subject-modal";
 import { UploadModal } from "@/components/modals/upload-modal";
+import { SessionModal } from "@/components/modals/session-modal";
+import { TaskModal } from "@/components/modals/task-modal";
 import { AiTutor } from "@/app/(dashboard)/_components/ai-tutor";
 import { getUserProfile } from "@/app/(dashboard)/_api/queries";
 import { redirect } from "next/navigation";
@@ -41,6 +43,8 @@ export default async function DashboardLayout({
       
       <SubjectModal />
       <UploadModal />
+      <SessionModal />
+      <TaskModal />
     </div>
   );
 }

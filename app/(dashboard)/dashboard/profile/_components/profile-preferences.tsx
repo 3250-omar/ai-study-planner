@@ -3,10 +3,23 @@
 import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, Trash2 } from "lucide-react";
-// Only React imports if necessary, but we can safely omit it since Next.js auto-imports React 19 now.
+import { RotateCcw, Trash2, LogOut } from "lucide-react";
+import { logout } from "@/app/(dashboard)/_api/actions";
+import { toast } from "sonner";
+import * as React from "react";
 
 export function ProfilePreferences() {
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
+
+  async function handleLogout() {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } catch {
+      toast.error("Failed to log out");
+      setIsLoggingOut(false);
+    }
+  }
   const { theme, setTheme } = useTheme();
 
   return (
@@ -91,6 +104,17 @@ export function ProfilePreferences() {
           </div>
         </div>
       </div>
+
+      {/* Log Out */}
+      <Button
+        variant="outline"
+        onClick={handleLogout}
+        disabled={isLoggingOut}
+        className="w-full h-12 rounded-xl text-sm font-bold gap-2 border-border/60 hover:bg-muted/50"
+      >
+        <LogOut className="size-4" />
+        {isLoggingOut ? "Logging out..." : "Log Out"}
+      </Button>
 
       {/* Danger Zone Block */}
       <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 md:p-8 shadow-sm">

@@ -2,11 +2,13 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, Clock, BookOpen, Plus } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, BookOpen, Plus, CheckCircle2, ListTodo } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import type { SubjectRow, StudySessionRow } from "@/app/(dashboard)/_api/queries";
+import { useSessionModal } from "@/store/use-session-modal";
+import { useTaskModal } from "@/store/use-task-modal";
 
 const themes: Array<{ theme: string; themeSoft: string; icon: string }> = [
   { theme: "bg-indigo-500", themeSoft: "bg-indigo-500/20 text-indigo-300", icon: "Σ" },
@@ -19,14 +21,18 @@ const themes: Array<{ theme: string; themeSoft: string; icon: string }> = [
 interface SubjectDetailClientProps {
   subject: SubjectRow;
   sessions: StudySessionRow[];
+  tasks: any[];
 }
 
-export function SubjectDetailClient({ subject, sessions }: SubjectDetailClientProps) {
+export function SubjectDetailClient({ subject, sessions, tasks }: SubjectDetailClientProps) {
   const themeIdx = React.useMemo(() => {
     const idx = Math.abs(hashCode(subject.id)) % themes.length;
     return idx;
   }, [subject.id]);
   const t = themes[themeIdx];
+
+  const sessionModal = useSessionModal();
+  const taskModal = useTaskModal();
 
   const totalMinutes = sessions.reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
   const completedSessions = sessions.filter((s) => s.status === "completed").length;
@@ -72,29 +78,28 @@ export function SubjectDetailClient({ subject, sessions }: SubjectDetailClientPr
             </div>
           </div>
         </div>
-        <Button className="gap-2 w-fit">
-          <Plus className="size-4" />
-          Schedule Session
-        </Button>
-      </div>
-
-      {/* Tags */}
-      {subject.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {subject.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-xs font-semibold uppercase tracking-wider px-3 py-1.5 bg-muted/60 rounded-lg text-muted-foreground"
+        <div className="flex items-center gap-2">
+            <Button 
+                variant="outline" 
+                className="gap-2"
+                onClick={() => taskModal.openModal()} // In a real app, we'd pass { subjectId: subject.id } but our store is simple for now
             >
-              {tag}
-            </span>
-          ))}
+                <ListTodo className="size-4" />
+                Add Task
+            </Button>
+            <Button 
+                className="gap-2"
+                onClick={() => sessionModal.openModal()}
+            >
+                <Plus className="size-4" />
+                Schedule Session
+            </Button>
         </div>
-      )}
+      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-xl border border-border/50 bg-card p-5">
+        <div className="rounded-xl border border-border/50 bg-card p-5 shadow-sm transition-all hover:border-primary/20">
           <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
             Total Study Time
           </div>
@@ -102,15 +107,15 @@ export function SubjectDetailClient({ subject, sessions }: SubjectDetailClientPr
             {Math.floor(totalMinutes / 60)}h {totalMinutes % 60}m
           </div>
         </div>
-        <div className="rounded-xl border border-border/50 bg-card p-5">
+        <div className="rounded-xl border border-border/50 bg-card p-5 shadow-sm transition-all hover:border-primary/20">
           <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
             Sessions Completed
           </div>
           <div className="text-2xl font-bold">{completedSessions}</div>
         </div>
-        <div className="rounded-xl border border-border/50 bg-card p-5">
+        <div className="rounded-xl border border-border/50 bg-card p-5 shadow-sm transition-all hover:border-primary/20">
           <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-            Difficulty
+            Subject Difficulty
           </div>
           <div className="flex items-center gap-2">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -118,7 +123,7 @@ export function SubjectDetailClient({ subject, sessions }: SubjectDetailClientPr
                 key={i}
                 className={cn(
                   "size-3 rounded-full",
-                  i <= (subject.difficulty ?? 0) ? t.theme : "bg-muted-foreground/20",
+                  i <= (subject.difficulty ?? 0) ? t.theme : "bg-primary/10",
                 )}
               />
             ))}
@@ -126,49 +131,86 @@ export function SubjectDetailClient({ subject, sessions }: SubjectDetailClientPr
         </div>
       </div>
 
-      {/* Recent Sessions */}
-      <div>
-        <h2 className="text-xl font-bold tracking-tight mb-4">Recent Sessions</h2>
-        {sessions.length === 0 ? (
-          <div className="rounded-xl border border-border/50 bg-card p-8 text-center">
-            <BookOpen className="size-8 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-muted-foreground">No study sessions recorded yet.</p>
-            <p className="text-sm text-muted-foreground/60 mt-1">
-              Schedule your first session to start tracking progress.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {sessions.slice(0, 10).map((session) => (
-              <div
-                key={session.id}
-                className="flex items-center justify-between rounded-xl border border-border/50 bg-card p-4"
-              >
-                <div>
-                  <h4 className="font-semibold text-sm">{session.title}</h4>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                    <Clock className="size-3" />
-                    <span>{session.duration_minutes} min</span>
-                    <span>•</span>
-                    <span>{format(new Date(session.start_time), "MMM dd, HH:mm")}</span>
-                  </div>
-                </div>
-                <span
-                  className={cn(
-                    "text-xs font-semibold px-2.5 py-1 rounded-full",
-                    session.status === "completed"
-                      ? "bg-green-500/10 text-green-600"
-                      : session.status === "in-progress"
-                        ? "bg-primary/10 text-primary"
-                        : "bg-muted text-muted-foreground",
-                  )}
-                >
-                  {session.status}
-                </span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Recent Sessions */}
+          <div>
+            <h2 className="text-xl font-bold tracking-tight mb-4 flex items-center gap-2">
+                Recent Sessions
+                <span className="text-xs font-medium px-2 py-0.5 bg-muted rounded-full text-muted-foreground">{sessions.length}</span>
+            </h2>
+            {sessions.length === 0 ? (
+              <div className="rounded-xl border border-border/50 bg-card p-8 text-center bg-muted/20">
+                <BookOpen className="size-8 text-muted-foreground/40 mx-auto mb-3" />
+                <p className="text-muted-foreground text-sm">No study sessions recorded yet.</p>
               </div>
-            ))}
+            ) : (
+              <div className="space-y-3">
+                {sessions.slice(0, 5).map((session) => (
+                  <div
+                    key={session.id}
+                    className="flex items-center justify-between rounded-xl border border-border/50 bg-card p-4 hover:border-primary/30 transition-all cursor-pointer"
+                  >
+                    <div>
+                      <h4 className="font-semibold text-sm">{session.title}</h4>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                        <Clock className="size-3" />
+                        <span>{session.duration_minutes} min</span>
+                        <span>•</span>
+                        <span>{format(new Date(session.start_time), "MMM dd")}</span>
+                      </div>
+                    </div>
+                    <span
+                      className={cn(
+                        "text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full",
+                        session.status === "completed"
+                          ? "bg-green-500/10 text-green-600"
+                          : session.status === "in-progress"
+                            ? "bg-primary/10 text-primary animate-pulse"
+                            : "bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {session.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Pending Tasks */}
+          <div>
+            <h2 className="text-xl font-bold tracking-tight mb-4 flex items-center gap-2">
+                Pending Tasks
+                <span className="text-xs font-medium px-2 py-0.5 bg-muted rounded-full text-muted-foreground">{tasks.filter(t => t.status !== 'completed').length}</span>
+            </h2>
+            {tasks.filter(t => t.status !== 'completed').length === 0 ? (
+              <div className="rounded-xl border border-border/50 bg-card p-8 text-center bg-muted/20">
+                <CheckCircle2 className="size-8 text-green-500/40 mx-auto mb-3" />
+                <p className="text-muted-foreground text-sm">All caught up! No pending tasks.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {tasks.filter(t => t.status !== 'completed').map((task) => (
+                  <div
+                    key={task.id}
+                    className="flex items-center justify-between rounded-xl border border-border/50 bg-card p-4 hover:border-primary/30 transition-all group"
+                  >
+                    <div className="flex items-center gap-3">
+                        <div className="size-4 rounded border border-border group-hover:border-primary transition-colors" />
+                        <div>
+                            <h4 className="font-semibold text-sm">{task.title}</h4>
+                            {task.due_at && (
+                                <p className="text-[10px] text-rose-500 font-bold uppercase tracking-wider mt-0.5">
+                                    Due {format(new Date(task.due_at), "MMM dd")}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
       </div>
     </div>
   );
